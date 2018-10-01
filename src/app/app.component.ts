@@ -99,7 +99,7 @@ export class AppComponent implements OnChanges, OnInit {
     		.attr("stroke-width", function(d) { return d.width; });
 
 		link.append("title")
-			.text(d => `${d.source.name} → ${d.target.name}\n${d.value}`);
+			.text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
 
 		this.svg.append("g")
       		.attr("stroke", "#000")
