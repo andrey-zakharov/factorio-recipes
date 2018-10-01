@@ -1,19 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, 
+	OnInit, OnChanges, SimpleChanges, SimpleChange } from '@angular/core';
 import { RecipesService } from './recipes.service';
 import { Observable } from 'rxjs';
 import { format as d3format, scaleOrdinal, schemeCategory10 } from 'd3';
 import * as d3 from 'd3-selection';
 import { sankey as d3Sankey, sankeyLinkHorizontal } from 'd3-sankey';
+import {MatMenuModule} from '@angular/material/menu';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnChanges, OnInit {
 	title = 'factorio-recipes';
-	recipes: Map<string, any> = new Map();
+	//recipes: Map<string, any> = new Map();
+	recipes : Object;
+	categories: Map<string, Array> = new Map();
 	svg;
+	@Input() selectedRecipeId : string;
 	constructor( private data: RecipesService ) {} 
 
 	ngOnInit(): void {
@@ -22,8 +27,28 @@ export class AppComponent implements OnInit {
 
 	}
 
+ 	ngOnChanges(changes: SimpleChanges) {
+ 		console.log(changes);
+    	//const name: SimpleChange = changes.selectedRecipeId;
+    }
+
+    onrecipeselect(rid) {
+    	this.selectedRecipeId = rid;
+    	this.drawGraphFor(rid);
+    }
+
+
 	ongetrecipes(data) {
 		this.recipes = data;
+
+		for( let [k, r] of Object.entries(this.recipes) ) {
+			if ( ! this.categories.has( r.type ) ) {
+				this.categories.set( r.type, [] );
+			}
+
+			this.categories.get( r.type ).push([r.id, r.name]);
+		}
+		
 		this.drawGraphFor("atomic-bomb");
 	}
 
@@ -32,18 +57,22 @@ export class AppComponent implements OnInit {
 	}
 
 	drawGraphFor( recipeId ) {
+	
+		console.group(recipeId);
 
 		let width = 800;
 		let height = 600;
 		let [nodesMap, links] = this.getSourcesFor( recipeId );
 		let nodes : Array = Array.from(nodesMap.values());
-		console.log(nodes);
+		console.debug("raw nodes", nodes);
+		console.debug("raw links", links);
 
 	 	const scale = scaleOrdinal(schemeCategory10)
 	    const color = name => scale(name.replace(/ .*/, ''));
 	    const format = d3format(".2g");
 		{links, nodes} = d3Sankey()
 			.nodeId(d=>d.id)
+			// .iterations(100)
 			.extent([[1, 1], [width - 1, height - 5]])
 		({ 
 			//nodes: [ {id: "a", name: "test1"}, {id: "b", name: "another-test"}, { id:"c", name: "third test"}],
@@ -54,7 +83,9 @@ export class AppComponent implements OnInit {
 			// ]
 		});
 
-		console.log(nodes, "nodes");
+		console.debug("result nodes", nodes);
+		console.debug("result links", links);
+		console.groupEnd();
 		this.svg.selectAll("*").remove();
 	  	const link = this.svg.append("g")
     		.attr("fill", "none")
@@ -116,7 +147,15 @@ export class AppComponent implements OnInit {
 			childNodes.forEach(function (v, k, m) {
 				nodes.set(k, v);
 			});
-			links.push.apply( links, childLinks );
+
+			for( let chL of childLinks ) { //sum
+				let found = links.find( el => el.source == chL.source && el.target == chL.target );
+				if ( !!found ) {
+					found.value += chL.value;
+				} else {
+					links.push( chL );
+				}
+			}
 
 			
 		}

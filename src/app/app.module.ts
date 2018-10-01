@@ -4,6 +4,10 @@ import { HttpClientModule } from '@angular/common/http';
 import { RecipesService } from './recipes.service';
 
 import { AppComponent } from './app.component';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
 
 @NgModule({
   declarations: [
@@ -12,6 +16,10 @@ import { AppComponent } from './app.component';
   imports: [
     BrowserModule,
     HttpClientModule,
+    NoopAnimationsModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatIconModule
   ],
   providers: [],
   bootstrap: [AppComponent]

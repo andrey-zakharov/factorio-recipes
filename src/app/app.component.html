@@ -1,4 +1,18 @@
-<select (change)="onchange($event)">
+<!--select (change)="onchange($event)">
   <option *ngFor="let r of recipes | keyvalue" value="{{r.key}}">{{r.value.name}}</option>
-</select>
+</select-->
+
+
+<ng-container *ngFor="let type of categories | keyvalue">
+		<button mat-button [matMenuTriggerFor]="menu" >{{type.key}}</button>
+		<mat-menu #menu=matMenu overlapTrigger=false>
+  			<button mat-menu-item (click)="onrecipeselect(recipe[0])" *ngFor="let recipe of type.value">
+  			<img  class="img-responsive"  src="./assets/factorio-content/{{recipe[0]}}.png" />{{recipe[1]}}</button>
+		</mat-menu>
+ </ng-container>
+
+
+
+
+
 <svg width=800 height=600></svg>
