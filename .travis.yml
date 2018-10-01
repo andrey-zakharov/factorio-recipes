@@ -1,7 +1,25 @@
 language: node_js
 node_js:
-  - "4.1"
+  - "stable"
+
+branches:
+  only:
+  - master
+
+cache:
+  directories:
+    - node_modules
+
+install:
+  - npm install -g yarn
+
 script:
-  - npm ci
-  - npm dist
-  - bash ./.travis-deploy.sh
+  - yarn lint
+  - yarn build --base-href https://andrey-zakharov.github.io/factorio-recipes/
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: dist/factorio-recipes
+  on:
+    branch: master
