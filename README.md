@@ -5,5 +5,5 @@ This is tool for great video game "Factorio". It visualize proportions of produc
 Open <link github.pages>. Choose recipe, inspect. Tooltips shows items per seconds to make 1 item.
 
 # Thanks
-To authors of d3, d3-sankey, and reddit/r/factorio.
+To authors of d3, d3-sankey, reddit/r/factorio and https://github.com/kevinta893/factorio-recipes-json
 

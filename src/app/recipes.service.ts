@@ -10,8 +10,9 @@ export class RecipesService {
 
   getRecipes() {
     return this.http.get(
-        'https://kevinta893.github.io/factorio-recipes-json/recipes.dictionary.min.json'
+    //    'https://kevinta893.github.io/factorio-recipes-json/recipes.dictionary.min.json'
     //  'https://raw.githubusercontent.com/andrey-zakharov/factorio-recipes-json/master/recipes.json'
+        'assets/recipes.dictionary.min.json'
     );
   }
 }
