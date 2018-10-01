@@ -19,6 +19,7 @@ export class AppComponent implements OnChanges, OnInit {
 	categories: Map<string, Array> = new Map();
 	svg;
 	@Input() selectedRecipeId : string;
+
 	constructor( private data: RecipesService ) {} 
 
 	ngOnInit(): void {
@@ -42,6 +43,8 @@ export class AppComponent implements OnChanges, OnInit {
 		this.recipes = data;
 
 		for( let [k, r] of Object.entries(this.recipes) ) {
+			if ( r.recipe.ingredients.length == 0 ) continue;
+
 			if ( ! this.categories.has( r.type ) ) {
 				this.categories.set( r.type, [] );
 			}
@@ -60,8 +63,9 @@ export class AppComponent implements OnChanges, OnInit {
 	
 		console.group(recipeId);
 
-		let width = 800;
-		let height = 600;
+		const width : int = 800;
+		const height : int = 600;
+
 		let [nodesMap, links] = this.getSourcesFor( recipeId );
 		let nodes : Array = Array.from(nodesMap.values());
 		console.debug("raw nodes", nodes);
@@ -87,6 +91,7 @@ export class AppComponent implements OnChanges, OnInit {
 		console.debug("result links", links);
 		console.groupEnd();
 		this.svg.selectAll("*").remove();
+		this.svg.attr("viewBox", `0 0 ${width} ${height}`);
 	  	const link = this.svg.append("g")
     		.attr("fill", "none")
     		.attr("stroke", "#000")

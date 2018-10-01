@@ -7,7 +7,9 @@
 		<button mat-button [matMenuTriggerFor]="menu" >{{type.key}}</button>
 		<mat-menu #menu=matMenu overlapTrigger=false>
   			<button mat-menu-item (click)="onrecipeselect(recipe[0])" *ngFor="let recipe of type.value">
-  			<img  class="img-responsive"  src="./assets/factorio-content/{{recipe[0]}}.png" />{{recipe[1]}}</button>
+  				<img matListAvatar src="./assets/factorio-content/{{recipe[0]}}.png" />
+  				{{recipe[1]}}
+  			</button>
 		</mat-menu>
  </ng-container>
 
@@ -15,4 +17,4 @@
 
 
 
-<svg width=800 height=600></svg>
+<svg viewBox="0 0 800 600"></svg>
