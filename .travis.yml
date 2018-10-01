@@ -10,12 +10,13 @@ cache:
   directories:
     - node_modules
 
-install:
-  - npm install -g yarn @angular/cli
+before_script:
+  - npm install -g @angular/cli
 
 script:
-  - yarn lint
-  - yarn build --base-href https://andrey-zakharov.github.io/factorio-recipes/
+  - ng build --prod --aot
+  - ng test
+
 deploy:
   provider: pages
   skip_cleanup: true
