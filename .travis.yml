@@ -2,5 +2,6 @@ language: node_js
 node_js:
   - "4.1"
 script:
-  - npm run ci
+  - npm ci
+  - npm dist
   - bash ./.travis-deploy.sh
