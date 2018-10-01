@@ -14,7 +14,7 @@ before_script:
   - npm install -g @angular/cli
 
 script:
-  - ng build --prod --aot
+  - ng build --prod --aot --base-href "https://andrey-zakharov.github.io/factorio-recipes/"
 
 deploy:
   provider: pages
