@@ -2,7 +2,7 @@ import { Component, Input,
     OnInit, OnChanges, SimpleChanges, SimpleChange } from '@angular/core';
 import { RecipesService } from './recipes.service';
 import { Observable } from 'rxjs';
-import { format as d3format, scaleOrdinal, schemeCategory10 } from 'd3';
+import { format as d3format, scaleOrdinal, schemeCategory10, scaleImplicit, range as d3Range } from 'd3';
 import * as d3 from 'd3-selection';
 import { sankey as d3Sankey, sankeyLinkHorizontal } from 'd3-sankey';
 import {MatMenuModule} from '@angular/material/menu';
@@ -15,8 +15,9 @@ import {MatMenuModule} from '@angular/material/menu';
 export class AppComponent implements OnChanges, OnInit {
     title = 'factorio-recipes';
     recipes: Object;
-    categories: Map<string, Array> = new Map();
+    categories: Map<string, Array<Array<string>>> = new Map();
     svg;
+    liquidInBarrels: boolean = false;
     @Input() selectedRecipeId: string;
 
     constructor( private data: RecipesService ) {}
@@ -51,34 +52,39 @@ export class AppComponent implements OnChanges, OnInit {
             this.categories.get( r.type ).push([r.id, r.name]);
         }
 
+        this.selectedRecipeId = 'atomic-bomb';
         this.drawGraphFor('atomic-bomb');
     }
 
     onchange(e) {
-        this.drawGraphFor( e.target.value );
+        this.drawGraphFor(this.selectedRecipeId);
     }
 
     drawGraphFor( recipeId ) {
 
         // console.group(recipeId);
 
-        const width: int = 800;
-        const height: int = 600;
+        const width: number = 800;
+        const height: number = 600;
 
-        const [nodesMap, links] = this.getSourcesFor( recipeId );
-        const nodes: Array = Array.from(nodesMap.values());
+        const [nodesMap, rawLinks] = this.getSourcesFor( recipeId );
+        const rawNodes: Array<any> = Array.from(nodesMap.values());
         // console.debug('raw nodes', nodes);
         // console.debug('raw links', links);
 
-        const scale = scaleOrdinal(schemeCategory10);
+        const scale = scaleOrdinal(
+        //    d3Range(15).map( i => return interpolateSinebow(i/15) )
+            schemeCategory10
+        );
+        scale.unknown( scaleImplicit );
         const color = name => scale(name.replace(/ .*/, ''));
-        const format = d3format('.2g');
+        const format = d3format('.2s');
         const sankeyDiagram = d3Sankey()
             .nodeId( d => d.id )
             // .iterations(100)
             .extent( [[1, 1], [width - 1, height - 5]] )
-            .nodes(nodes)
-            .links(links);
+            .nodes(rawNodes)
+            .links(rawLinks);
 
         const {links, nodes} = sankeyDiagram();
 
@@ -128,10 +134,18 @@ export class AppComponent implements OnChanges, OnInit {
             .text( d => d.name )
         ;
 
+        node.append('image')
+            .attr('xlink:href', d => `assets/factorio-content/${d.id}.png`)
+            .attr('width', 32)
+            .attr('height', 32)
+            .attr('x', d => (d.x1 + d.x0)  / 2 - 16)
+            .attr('y', d => (d.y1 + d.y0) / 2 - 16)
+
+
     }
 
     // return nodes, links
-    getSourcesFor( recipeId ) {
+    getSourcesFor( recipeId ): [Map<string, any>, any[]] {
         const nodes = new Map<string, any>();
         const links = [];
         // console.group(recipeId);
@@ -140,17 +154,24 @@ export class AppComponent implements OnChanges, OnInit {
         for ( const ingr of this.recipes[recipeId].recipe.ingredients ) {
 
             // nodes.set(ingr.id, {id: ingr.id, name: this.recipes[ingr.id].name});
+
+            let value = ingr.amount / this.recipes[recipeId].recipe.yield;
+            if ( this.liquidInBarrels && this.recipes[ingr.id].type == "Liquid" ) {
+                value /= 50.0 ; // liters in barrel
+            }
+
             links.push( {
                 source: ingr.id , target: recipeId,
-                value: ingr.amount / this.recipes[recipeId].recipe.time / this.recipes[recipeId].recipe.yield
+                value: value
             } );
-            const [childNodes, childLinks] = this.getSourcesFor(ingr.id);
+            const [childNodes, childLinks] : [Map<string, any>, any[]] = this.getSourcesFor(ingr.id);
 
-            childNodes.forEach(function (v, k, m) {
-                nodes.set(k, v);
-            });
+            childNodes.forEach( (v, k): Map<string, any> => nodes.set(k, v) );
 
             for ( const chL of childLinks ) { // sum
+
+                chL.value *= value;
+
                 const found = links.find( el => el.source === chL.source && el.target === chL.target );
                 if ( !!found ) {
                     found.value += chL.value;
