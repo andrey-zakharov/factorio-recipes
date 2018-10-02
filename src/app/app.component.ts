@@ -129,12 +129,10 @@ export class AppComponent implements OnChanges, OnInit {
         const link = this.svg.append('g')
             .attr('fill', 'none')
             .attr('stroke', '#000')
-            .attr('stroke-opacity', 0.2)
+            
         .selectAll('path')
         .data(links)
         .enter().append('path')
-            .attr('fill-opacity', 0.25)
-            .attr('stroke-opacity', 0.25)
             .attr('d', myLink())
 
         link.append('title')

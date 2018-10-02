@@ -23,6 +23,7 @@ nav {
 	flex-shrink: 0;
 	flex-wrap: wrap;
 }
+
 svg {
 	flex-shrink: 1;
    	/*width: 100%;*/

@@ -2,3 +2,11 @@
 @import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
 html, body { height: 100%; }
 body { margin: 0; font-family: 'Roboto', sans-serif; }
+
+svg path {
+	transition: opacity 0.5s;
+	opacity: 0.25;
+}
+svg path:hover {
+	opacity: 0.5;
+}
