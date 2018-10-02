@@ -112,7 +112,8 @@ export class AppComponent implements OnChanges, OnInit {
 
                 p.moveTo(d.source.x1, sy0);
                 p.lineTo(d.target.x0, ty0);
-                p._ += `V ${ty1}`;
+                p.lineTo(d.target.x0, ty1);
+                //p._ += `V ${ty1}`;
                 p.lineTo(d.source.x1, sy1);
                 p.closePath();
             } else {
