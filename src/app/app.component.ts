@@ -2,9 +2,10 @@ import { Component, Input,
     OnInit, OnChanges, SimpleChanges, SimpleChange } from '@angular/core';
 import { RecipesService } from './recipes.service';
 import { Observable } from 'rxjs';
-import { format as d3format, scaleOrdinal, schemeCategory10, scaleImplicit, range as d3Range } from 'd3';
+import { path, format as d3format, scaleOrdinal, schemeCategory10, scaleImplicit, range as d3Range } from 'd3';
 import * as d3 from 'd3-selection';
 import { sankey as d3Sankey, sankeyLinkHorizontal, sankeyJustify } from 'd3-sankey';
+import { linkHorizontal } from 'd3-shape';
 import {MatMenuModule} from '@angular/material/menu';
 
 @Component({
@@ -94,6 +95,35 @@ export class AppComponent implements OnChanges, OnInit {
         // console.debug('result nodes', nodes);
         // console.debug('result links', links);
         // console.groupEnd();
+
+    function curveHorizontal(context, x0, y0, x1, y1) {
+      context.bezierCurveTo(x0 = (x0 + x1) / 2, y0, x0, y1, x1, y1);
+    }
+    // use custom shapes for links
+    function myLink() {
+        
+        return function(d) {
+            let p = path();
+
+            if ( d.target.x0 - d.source.x1 <= d.width ) {
+                //straign line
+                const sy0 = d.y0 - d.width / 2, sy1 = d.y0 + d.width / 2,
+                ty0 = d.y1 - d.width / 2, ty1 = d.y1 + d.width / 2;
+
+                p.moveTo(d.source.x1, sy0);
+                p.lineTo(d.target.x0, ty0);
+                p._ += `V ${ty1}`;
+                p.lineTo(d.source.x1, sy1);
+                p.closePath();
+            } else {
+                // thick bezier
+                p.moveTo(d.source.x1, d.y0);
+                curveHorizontal(p, d.source.x1, d.y0, d.target.x0, d.y1);
+            }
+            return p;
+        }
+    }
+
         this.svg.selectAll('*').remove();
         this.svg.attr('viewBox', `0 0 ${width} ${height}`);
         const link = this.svg.append('g')
@@ -103,13 +133,25 @@ export class AppComponent implements OnChanges, OnInit {
         .selectAll('path')
         .data(links)
         .enter().append('path')
-            .attr('stroke', d => color(d.source.name))
-            .attr('d', sankeyLinkHorizontal())
-            .attr('stroke-width', function(d) { return d.width; });
+            .attr('fill-opacity', 0.25)
+            .attr('stroke-opacity', 0.25)
+            .attr('d', myLink())
 
         link.append('title')
             .text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
 
+        link.datum( (d, i, nodes) => {
+                
+                if ( d.target.x0 - d.source.x1 <= d.width ) {
+                    // for straign lines
+                    nodes[i].setAttribute('fill', color(d.source.name));
+                } else {
+                    //bezier
+                    nodes[i].setAttribute('stroke', color(d.source.name));
+                    nodes[i].setAttribute('stroke-opacity', color(d.source.name));
+                    nodes[i].setAttribute('stroke-width', d.width);
+                }
+            } );
         const node = this.svg.append('g')
 
         .selectAll('rect')
@@ -160,8 +202,8 @@ export class AppComponent implements OnChanges, OnInit {
         for ( const ingr of this.recipes[recipeId].recipe.ingredients ) {
 
             // nodes.set(ingr.id, {id: ingr.id, name: this.recipes[ingr.id].name});
+            let value = ingr.amount / (this.recipes[recipeId].recipe.yield || 1);
 
-            let value = ingr.amount / this.recipes[recipeId].recipe.yield;
             if ( this.liquidInBarrels && this.recipes[ingr.id].type == "Liquid" ) {
                 value /= 50.0 ; // liters in barrel
             }
