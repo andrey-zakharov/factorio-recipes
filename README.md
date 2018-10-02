@@ -1,3 +1,6 @@
+# Live app
+https://andrey-zakharov.github.io/factorio-recipes/
+
 # What is this
 This is tool for great video game "Factorio". It visualize proportions of products flow for recipes, so you could easily notes where mass flow is expected.
 
