@@ -1,11 +1,34 @@
+.app-container {
+	height: 100%;
+}
 .mat-list-avatar {
 	width: 32px; height: 32px;
 	margin-right: 0.4em;
 	vertical-align: middle;
 }
+.flex {
+	display: flex;
+}
+[flex-wrap] {
+	flex-wrap: wrap;
+}
+.flex-hor {
+	flex-direction: row;
+}
+.flex-vert {
+	flex-direction: column;
+}
+
+nav {
+	flex-shrink: 0;
+	flex-wrap: wrap;
+}
 svg {
+	flex-shrink: 1;
    	/*width: 100%;*/
   	/*height: auto;*/
   	border: 2px solid black;
   	font-size: 75%;
+  	height:100vh;
+  	width:100%;
 }

@@ -2,19 +2,19 @@
   <option *ngFor="let r of recipes | keyvalue" value="{{r.key}}">{{r.value.name}}</option>
 </select-->
 
+<div class="flex flex-vert app-container">
 
-<ng-container *ngFor="let type of categories | keyvalue">
-		<button mat-button [matMenuTriggerFor]="menu" >{{type.key}}</button>
-		<mat-menu #menu=matMenu overlapTrigger=false>
-  			<button mat-menu-item (click)="onrecipeselect(recipe[0])" *ngFor="let recipe of type.value">
-  				<img matListAvatar src="./assets/factorio-content/{{recipe[0]}}.png" />
-  				{{recipe[1]}}
-  			</button>
-		</mat-menu>
- </ng-container>
-
-
-<mat-slide-toggle [(ngModel)]="liquidInBarrels" (change)="onchange($event)">Liquids in barrels</mat-slide-toggle>
-
-
-<svg viewBox="0 0 800 600"></svg>
+	<nav class="flex flex-hor" flex-wrap>
+		<ng-container *ngFor="let type of categories | keyvalue">
+				<button mat-button [matMenuTriggerFor]="menu" >{{type.key}}</button>
+				<mat-menu #menu=matMenu overlapTrigger=false>
+		  			<button mat-menu-item (click)="onrecipeselect(recipe[0])" *ngFor="let recipe of type.value">
+		  				<img matListAvatar src="./assets/factorio-content/{{recipe[0]}}.png" />
+		  				{{recipe[1]}}
+		  			</button>
+				</mat-menu>
+	 	</ng-container>
+	 	<mat-slide-toggle [(ngModel)]="liquidInBarrels" (change)="onchange($event)">Liquids in barrels</mat-slide-toggle>
+	</nav>
+	<svg viewBox="0 0 800 600"></svg>
+</div>

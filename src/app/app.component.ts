@@ -64,8 +64,8 @@ export class AppComponent implements OnChanges, OnInit {
 
         // console.group(recipeId);
 
-        const width: number = 800;
-        const height: number = 600;
+        const width: number = 1000;
+        const height: number = 800;
 
         const [nodesMap, rawLinks] = this.getSourcesFor( recipeId );
         const rawNodes: Array<any> = Array.from(nodesMap.values());
