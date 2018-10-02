@@ -71,7 +71,7 @@ export class AppComponent implements OnChanges, OnInit {
         const rawNodes: Array<any> = Array.from(nodesMap.values());
         // console.debug('raw nodes', nodes);
         // console.debug('raw links', links);
-        console.log(JSON.stringify({ nodes: rawNodes, links: rawLinks}, null, ' '));
+        // console.log(JSON.stringify({ nodes: rawNodes, links: rawLinks}, null, ' '));
 
         const scale = scaleOrdinal(
         //    d3Range(15).map( i => return interpolateSinebow(i/15) )

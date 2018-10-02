@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/andrey-zakharov/factorio-recipes.svg?branch=master)](https://travis-ci.org/andrey-zakharov/factorio-recipes)
 # Live app
 https://andrey-zakharov.github.io/factorio-recipes/
 
