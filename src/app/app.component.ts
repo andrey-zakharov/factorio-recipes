@@ -4,7 +4,7 @@ import { RecipesService } from './recipes.service';
 import { Observable } from 'rxjs';
 import { format as d3format, scaleOrdinal, schemeCategory10, scaleImplicit, range as d3Range } from 'd3';
 import * as d3 from 'd3-selection';
-import { sankey as d3Sankey, sankeyLinkHorizontal } from 'd3-sankey';
+import { sankey as d3Sankey, sankeyLinkHorizontal, sankeyJustify } from 'd3-sankey';
 import {MatMenuModule} from '@angular/material/menu';
 
 @Component({
@@ -64,13 +64,14 @@ export class AppComponent implements OnChanges, OnInit {
 
         // console.group(recipeId);
 
-        const width: number = 1000;
-        const height: number = 800;
+        const width: number = 5000;
+        const height: number = 4000;
 
         const [nodesMap, rawLinks] = this.getSourcesFor( recipeId );
         const rawNodes: Array<any> = Array.from(nodesMap.values());
         // console.debug('raw nodes', nodes);
         // console.debug('raw links', links);
+        console.log(JSON.stringify({ nodes: rawNodes, links: rawLinks}, null, ' '));
 
         const scale = scaleOrdinal(
         //    d3Range(15).map( i => return interpolateSinebow(i/15) )
@@ -80,6 +81,8 @@ export class AppComponent implements OnChanges, OnInit {
         const color = name => scale(name.replace(/ .*/, ''));
         const format = d3format('.2s');
         const sankeyDiagram = d3Sankey()
+            .nodeAlign(sankeyJustify)
+            .nodePadding(45)
             .nodeId( d => d.id )
             // .iterations(100)
             .extent( [[1, 1], [width - 1, height - 5]] )
@@ -125,21 +128,24 @@ export class AppComponent implements OnChanges, OnInit {
                 .text(d => `${d.name}\ninput ${format(d.value)} items per second`)
         ;
 
-        node.append('text')
-            .attr('fill', d => color(d.name))
-            .attr('x', d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
-            .attr('y', d => (d.y1 + d.y0) / 2)
-            .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
-            .attr('dy', '0.35em')
-            .text( d => d.name )
+        node.append('a')
+            .attr('xlink:href', d => this.recipes[d.id].wiki_link)
+            .attr('xlink:show', 'new')
+            .append('text')
+                .attr('fill', d => color(d.name))
+                .attr('x', d => d.x1 + (d.x0 < width / 2 ? + 90 : - 100))
+                .attr('y', d => (d.y1 + d.y0) / 2)
+                .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
+                .attr('dy', '0.35em')
+                .text( d => d.name )
         ;
 
         node.append('image')
             .attr('xlink:href', d => `assets/factorio-content/${d.id}.png`)
-            .attr('width', 32)
-            .attr('height', 32)
-            .attr('x', d => (d.x1 + d.x0)  / 2 - 16)
-            .attr('y', d => (d.y1 + d.y0) / 2 - 16)
+            .attr('width', 160)
+            .attr('height', 160)
+            .attr('x', d => (d.x1 + d.x0)  / 2 - 80)
+            .attr('y', d => (d.y1 + d.y0) / 2 - 80)
 
 
     }
