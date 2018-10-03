@@ -46,6 +46,8 @@ export class AppComponent implements OnChanges, OnInit {
 
         for ( const [k, r] of Object.entries( this.recipes ) ) {
 
+            if ( r.recipe.ingredients.length === 0 ) { continue; }
+
             if ( ! this.categories.has( r.type ) ) {
                 this.categories.set( r.type, [] );
             }
