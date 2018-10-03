@@ -4,7 +4,7 @@ import { RecipesService } from './recipes.service';
 import { Observable } from 'rxjs';
 import { path, format as d3format, scaleOrdinal, schemeCategory10, scaleImplicit, range as d3Range } from 'd3';
 import * as d3 from 'd3-selection';
-import { sankey as d3Sankey, sankeyLinkHorizontal, sankeyJustify } from 'd3-sankey';
+import { sankey, sankeyLink, sankeyDiagram } from 'd3-sankey-diagram';
 import { linkHorizontal } from 'd3-shape';
 import {MatMenuModule} from '@angular/material/menu';
 
@@ -17,6 +17,7 @@ export class AppComponent implements OnChanges, OnInit {
     title = 'factorio-recipes';
     recipes: Object;
     categories: Map<string, Array<Array<string>>> = new Map();
+    groups: Array<Object> = []; // for graph
     svg;
     liquidInBarrels: boolean = false;
     @Input() selectedRecipeId: string;
@@ -44,7 +45,6 @@ export class AppComponent implements OnChanges, OnInit {
         this.recipes = data;
 
         for ( const [k, r] of Object.entries( this.recipes ) ) {
-            if ( r.recipe.ingredients.length === 0 ) { continue; }
 
             if ( ! this.categories.has( r.type ) ) {
                 this.categories.set( r.type, [] );
@@ -52,6 +52,16 @@ export class AppComponent implements OnChanges, OnInit {
 
             this.categories.get( r.type ).push([r.id, r.name]);
         }
+
+        this.categories.forEach( (v, k) => {
+            this.groups.push( { 
+                title: k, 
+                type:"same", 
+                nodes: v.map( (it) => it[0]) 
+            } )
+        });
+
+
 
         this.selectedRecipeId = 'atomic-bomb';
         this.drawGraphFor('atomic-bomb');
@@ -65,8 +75,8 @@ export class AppComponent implements OnChanges, OnInit {
 
         // console.group(recipeId);
 
-        const width: number = 5000;
-        const height: number = 4000;
+        const width: number = 1850;
+        const height: number = 930;
 
         const [nodesMap, rawLinks] = this.getSourcesFor( recipeId );
         const rawNodes: Array<any> = Array.from(nodesMap.values());
@@ -81,112 +91,83 @@ export class AppComponent implements OnChanges, OnInit {
         scale.unknown( scaleImplicit );
         const color = name => scale(name.replace(/ .*/, ''));
         const format = d3format('.2s');
-        const sankeyDiagram = d3Sankey()
-            .nodeAlign(sankeyJustify)
-            .nodePadding(45)
+        
+        const graph = sankey()
             .nodeId( d => d.id )
             // .iterations(100)
-            .extent( [[1, 1], [width - 1, height - 5]] )
-            .nodes(rawNodes)
-            .links(rawLinks);
+            .extent( [[100, 10], [width-200, height-20]] )
+            .nodes(() => rawNodes)
+            .links(() => rawLinks)
+        ;
 
-        const {links, nodes} = sankeyDiagram();
+        //const {links, nodes} = sankeyDiagram();
 
         // console.debug('result nodes', nodes);
         // console.debug('result links', links);
         // console.groupEnd();
 
-    function curveHorizontal(context, x0, y0, x1, y1) {
-      context.bezierCurveTo(x0 = (x0 + x1) / 2, y0, x0, y1, x1, y1);
-    }
-    // use custom shapes for links
-    function myLink() {
-        
-        return function(d) {
-            let p = path();
+        let diagram = sankeyDiagram();
+        diagram.nodeTitle( d => d.name );
+        diagram.linkColor( d => 
+            color(d.source.name)
+        );
 
-            if ( d.target.x0 - d.source.x1 <= d.width ) {
-                //straign line
-                const sy0 = d.y0 - d.width / 2, sy1 = d.y0 + d.width / 2,
-                ty0 = d.y1 - d.width / 2, ty1 = d.y1 + d.width / 2;
-
-                p.moveTo(d.source.x1, sy0);
-                p.lineTo(d.target.x0, ty0);
-                p.lineTo(d.target.x0, ty1);
-                //p._ += `V ${ty1}`;
-                p.lineTo(d.source.x1, sy1);
-                p.closePath();
-            } else {
-                // thick bezier
-                p.moveTo(d.source.x1, d.y0);
-                curveHorizontal(p, d.source.x1, d.y0, d.target.x0, d.y1);
-            }
-            return p;
-        }
-    }
-
-        this.svg.selectAll('*').remove();
+        //this.svg.selectAll('*').remove();
         this.svg.attr('viewBox', `0 0 ${width} ${height}`);
-        const link = this.svg.append('g')
-            .attr('fill', 'none')
-            .attr('stroke', '#000')
+
+        this.svg
+            .datum(graph)
+            .call(diagram);//.groups(this.groups)
+        // const link = this.svg.append('g')
+        //     .attr('fill', 'none')
+        //     .attr('stroke', '#000')
             
-        .selectAll('path')
-        .data(links)
-        .enter().append('path')
-            .attr('d', myLink())
+        // .selectAll('path')
+        // .data(links)
+        // .enter().append('path')
+        //     .attr('d', sankeyLink())
+        //     .attr('stroke', d => color(d.source.name))
+        //     .attr('stroke-width', d => d.dy);
 
-        link.append('title')
-            .text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
+        // link.append('title')
+        //     .text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
 
-        link.datum( (d, i, nodes) => {
-                
-                if ( d.target.x0 - d.source.x1 <= d.width ) {
-                    // for straign lines
-                    nodes[i].setAttribute('fill', color(d.source.name));
-                } else {
-                    //bezier
-                    nodes[i].setAttribute('stroke', color(d.source.name));
-                    nodes[i].setAttribute('stroke-opacity', color(d.source.name));
-                    nodes[i].setAttribute('stroke-width', d.width);
-                }
-            } );
-        const node = this.svg.append('g')
+        // const node = this.svg.append('g')
 
-        .selectAll('rect')
-        .data(nodes)
-        .enter()
-            .append('g');
+        // .selectAll('rect')
+        // .data(nodes)
+        // .enter()
+        //     .append('g');
 
-        node.append('rect')
-                .attr('stroke', '#222')
-                .attr('x', d => d.x0)
-                .attr('y', d => d.y0)
-                .attr('height', d => d.y1 - d.y0)
-                .attr('width', d => d.x1 - d.x0)
-                .attr('fill', d => color(d.name))
-            .append('title')
-                .text(d => `${d.name}\ninput ${format(d.value)} items per second`)
-        ;
+        // node.append('rect')
+        //         .attr('stroke', '#222')
+        //         .attr('x', d => d.x0)
+        //         .attr('y', d => d.y0)
+        //         .attr('height', d => d.y1 - d.y0)
+        //         .attr('width', d => d.x1 - d.x0)
+        //         .attr('fill', d => color(d.name))
+        //     .append('title')
+        //         .text(d => `${d.name}\ninput ${format(d.value)} items per second`)
+        // ;
 
-        node.append('a')
-            .attr('xlink:href', d => this.recipes[d.id].wiki_link)
-            .attr('xlink:show', 'new')
-            .append('text')
-                .attr('fill', d => color(d.name))
-                .attr('x', d => d.x1 + (d.x0 < width / 2 ? + 90 : - 100))
-                .attr('y', d => (d.y1 + d.y0) / 2)
-                .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
-                .attr('dy', '0.35em')
-                .text( d => d.name )
-        ;
+        // node.append('a')
+        //     .attr('xlink:href', d => this.recipes[d.id].wiki_link)
+        //     .attr('xlink:show', 'new')
+        //     .append('text')
+        //         .attr('fill', d => color(d.name))
+        //         .attr('x', d => d.x1 + (d.x0 < width / 2 ? + 20 : - 20))
+        //         .attr('y', d => (d.y1 + d.y0) / 2)
+        //         .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
+        //         .attr('dy', '0.35em')
+        //         .text( d => d.name )
+        // ;
 
-        node.append('image')
-            .attr('xlink:href', d => `assets/factorio-content/${d.id}.png`)
-            .attr('width', 160)
-            .attr('height', 160)
-            .attr('x', d => (d.x1 + d.x0)  / 2 - 80)
-            .attr('y', d => (d.y1 + d.y0) / 2 - 80)
+        // node.append('image')
+        //     .attr('xlink:href', d => `assets/factorio-content/${d.id}.png`)
+        //     .attr('width', 32)
+        //     .attr('height', 32)
+        //     .attr('x', d => (d.x1 + d.x0) / 2 - 16)
+        //     .attr('y', d => (d.y1 + d.y0) / 2 - 16)
 
 
     }

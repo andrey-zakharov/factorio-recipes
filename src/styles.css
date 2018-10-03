@@ -10,3 +10,7 @@ svg path {
 svg path:hover {
 	opacity: 0.5;
 }
+
+.group rect {
+	opacity: 0.1;
+}
